@@ -1,8 +1,21 @@
 import express from "express";
-
+import fs from 'fs'
 const app = express();
 let PORT = 5000;
 app.use(express.json());
+
+//global middleware
+app.use((req,res,next) => {
+  let logdata = `${new Date()} | ${req.method} | ${req.url} | ${req.ip} \n`;
+  console.log(logdata);
+  fs.appendFile("log.txt", logdata, (err) => {
+    if(err) throw err;
+  })
+  next();
+})
+
+//middleware
+app.use("/assets",express.static('public'))
 
 // Home Route
 app.get("/", (req, res) => {
@@ -31,7 +44,8 @@ app.get("/orders/:orderID", (req, res) => {
         { id: 2, name: 'Vitamin C Moisturizer', quantity: 1 },
         { id: 3, name: 'Hyaluronic Acid', quantity: 3 }
     ];
-    const order = orders.find(o => o.id === orderID);
+    const order = orders.fi
+    nd(o => o.id === orderID);
 
     if (order) {
         res.status(200).json(order);
@@ -98,8 +112,17 @@ app.get("*", (req, res) => {
         "error": "Route not found"
     });
 });
-
+//middleware 400 no route
+app.use((req,res,next)=>{
+    return res.status(400).json("We don't have this page yet!")
+  })
+  //middleware 500
+    app.use((error, req, res)=>{
+      res.status(500).json({
+          "error": error.message
+    })
+})
 // Start Server
 app.listen(PORT, () => {
-    console.log(Server is running on port http://localhost:${PORT});
+    console.log(`Server is running on port http://localhost:${PORT}`);
 });
